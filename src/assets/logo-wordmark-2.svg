@@ -1,0 +1,23 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 150" width="600" height="150">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400&amp;display=swap');
+    
+    .brand-text {
+      font-family: 'Bodoni Moda', serif;
+      font-size: 110px;
+      fill: #0A0A0A;
+      letter-spacing: 0.02em;
+    }
+  </style>
+
+  <text x="330" y="115" class="brand-text" text-anchor="end">AMA</text>
+  <text x="410" y="115" class="brand-text" text-anchor="start">TI</text>
+
+  <!-- Architectural Stiletto 'E' -->
+  <g transform="translate(342, 40)">
+    <!-- Sweeping Crescent Backbone -->
+    <path d="M 60 4 Q 28 -12 8 20 Q -12 52 20 68 Q 44 80 60 64 Q 32 72 16 48 Q 0 24 24 12 Q 44 4 60 4 Z" fill="#0A0A0A" />
+    <!-- Floating Stiletto Crossbar -->
+    <path d="M 14 34 Q 34 31 54 28 Q 36 40 14 38 Z" fill="#0A0A0A" />
+  </g>
+</svg>
