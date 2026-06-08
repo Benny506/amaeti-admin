@@ -5,7 +5,8 @@ import { Offcanvas } from 'react-bootstrap';
 import { 
   Users, 
   FileText, 
-  LogOut 
+  LogOut,
+  Package
 } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { clearAuth } from '../../store/authSlice';
@@ -16,6 +17,7 @@ import logoWordmark from '../../assets/logo-wordmark.svg';
 const navItems = [
   { path: '/', label: 'Waitlist', icon: Users },
   { path: '/content', label: 'Site Content', icon: FileText },
+  { path: '/products', label: 'Products', icon: Package },
 ];
 
 const SidebarContent = ({ onClose }) => {

@@ -60,23 +60,29 @@ export const compressImage = (file) => {
  * Uploads a file (compressing if image) to Supabase Storage.
  * Returns the public URL.
  */
-export const processAndUploadMedia = async (file) => {
+export const processAndUploadMedia = async (file, bucketName = 'site_content') => {
   let fileToUpload = file;
   let fileExt = file.name.split('.').pop().toLowerCase();
   let fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
   if (file.type.startsWith('image/')) {
     const webpBlob = await compressImage(file);
-    // Create a new File from the Blob
     fileToUpload = new File([webpBlob], `${fileName}.webp`, { type: 'image/webp' });
     fileName = `${fileName}.webp`;
   } else {
-    // For video, keep original extension
+    // Note: User explicitly stated product media is ALWAYS an image. 
+    // We leave this for site_content legacy support, but for products, it should be an image.
     fileName = `${fileName}.${fileExt}`;
   }
 
+  // ENFORCE 3MB LIMIT
+  const MAX_BYTES = 3 * 1024 * 1024;
+  if (fileToUpload.size > MAX_BYTES) {
+    throw new Error(`File is too large (${(fileToUpload.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed size is 3MB.`);
+  }
+
   const { data, error } = await supabase.storage
-    .from('site_content')
+    .from(bucketName)
     .upload(fileName, fileToUpload, {
       cacheControl: '3600',
       upsert: false,
@@ -87,7 +93,7 @@ export const processAndUploadMedia = async (file) => {
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from('site_content')
+    .from(bucketName)
     .getPublicUrl(data.path);
 
   return publicUrlData.publicUrl;
@@ -96,17 +102,16 @@ export const processAndUploadMedia = async (file) => {
 /**
  * Extracts path from a Supabase public URL and deletes it from the bucket.
  */
-export const deleteOldMedia = async (url) => {
-  if (!url || !url.includes('supabase.co/storage/v1/object/public/site_content/')) return;
+export const deleteOldMedia = async (url, bucketName = 'site_content') => {
+  if (!url || !url.includes(`supabase.co/storage/v1/object/public/${bucketName}/`)) return;
   
   try {
-    const parts = url.split('site_content/');
+    const parts = url.split(`${bucketName}/`);
     if (parts.length > 1) {
       const path = parts[1];
-      await supabase.storage.from('site_content').remove([path]);
+      await supabase.storage.from(bucketName).remove([path]);
     }
   } catch (err) {
-    console.error('Failed to delete old media:', err);
-    // Non-blocking error
+    console.error(`Failed to delete old media from ${bucketName}:`, err);
   }
 };

@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Waitlist from './pages/Waitlist';
 import SiteContent from './pages/SiteContent';
+import Products from './pages/Products';
 
 import BlockingLoader from './components/ui/BlockingLoader';
 import SubtleLoader from './components/ui/SubtleLoader';
@@ -99,6 +100,7 @@ function App() {
               >
                 <Route index element={<Waitlist />} />
                 <Route path="content" element={<SiteContent />} />
+                <Route path="products" element={<Products />} />
               </Route>
             </Routes>
           </div>
