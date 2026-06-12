@@ -9,6 +9,9 @@ import Dashboard from './pages/Dashboard';
 import Waitlist from './pages/Waitlist';
 import SiteContent from './pages/SiteContent';
 import Products from './pages/Products';
+import DeliveryRegions from './pages/DeliveryRegions';
+import Orders from './pages/Orders';
+import OrderDetails from './pages/OrderDetails';
 
 import BlockingLoader from './components/ui/BlockingLoader';
 import SubtleLoader from './components/ui/SubtleLoader';
@@ -101,6 +104,9 @@ function App() {
                 <Route index element={<Waitlist />} />
                 <Route path="content" element={<SiteContent />} />
                 <Route path="products" element={<Products />} />
+                <Route path="delivery" element={<DeliveryRegions />} />
+                <Route path="orders" element={<Orders />} />
+                <Route path="orders/:id" element={<OrderDetails />} />
               </Route>
             </Routes>
           </div>

@@ -6,7 +6,9 @@ import {
   Users, 
   FileText, 
   LogOut,
-  Package
+  Package,
+  Truck,
+  ShoppingBag
 } from 'lucide-react';
 import { supabase } from '../../supabase';
 import { clearAuth } from '../../store/authSlice';
@@ -18,6 +20,8 @@ const navItems = [
   { path: '/', label: 'Waitlist', icon: Users },
   { path: '/content', label: 'Site Content', icon: FileText },
   { path: '/products', label: 'Products', icon: Package },
+  { path: '/delivery', label: 'Delivery', icon: Truck },
+  { path: '/orders', label: 'Orders', icon: ShoppingBag },
 ];
 
 const SidebarContent = ({ onClose }) => {

@@ -44,7 +44,9 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
     price: '0.00',
     compare_at_price: '',
     inventory_quantity: '0',
+    weight: '1.0',
     attributes: [],
+    features: [],
     media: [], // Array of { fileOrUrl, alt_text }
     is_active: true
   });
@@ -81,7 +83,9 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
               price: v.price,
               compare_at_price: v.compare_at_price || '',
               inventory_quantity: v.inventory_quantity,
+              weight: v.weight ? v.weight.toString() : '1.0',
               attributes: Object.entries(v.attributes || {}).map(([key, value]) => ({ key, value })),
+              features: v.features || [],
               is_active: v.is_active !== false,
               media: (v.product_media || []).sort((a, b) => a.display_order - b.display_order).map(m => ({
                 id: m.id,
@@ -125,7 +129,9 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
         price: v.price,
         compare_at_price: v.compare_at_price || '',
         inventory_quantity: v.inventory_quantity.toString(),
+        weight: v.weight || '1.0',
         attributes: [...(v.attributes || [])],
+        features: [...(v.features || [])],
         media: [...v.media],
         is_active: v.is_active !== false
       });
@@ -137,7 +143,9 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
         price: '0.00',
         compare_at_price: '',
         inventory_quantity: '0',
+        weight: '1.0',
         attributes: [],
+        features: [],
         media: [],
         is_active: true
       });
@@ -162,6 +170,11 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
       return;
     }
 
+    if (parseFloat(variantForm.weight) <= 0 || isNaN(parseFloat(variantForm.weight))) {
+      dispatch(addToast({ type: 'warning', message: 'Variant weight must be greater than 0 kg.' }));
+      return;
+    }
+
     // Crucial rule: Every variant must have at least 1 image
     if (variantForm.media.length === 0) {
       dispatch(addToast({ type: 'warning', message: 'Each variant must have at least one image.' }));
@@ -175,7 +188,10 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
       return;
     }
 
-    const newVariant = { ...variantForm };
+    // Validate Features
+    const activeFeatures = variantForm.features.filter(f => f.trim() !== '');
+    
+    const newVariant = { ...variantForm, features: activeFeatures };
     if (editingVariantIndex >= 0) {
       const updated = [...variants];
       // preserve ID if editing existing
@@ -220,6 +236,22 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
     const updated = [...variantForm.attributes];
     updated.splice(index, 1);
     setVariantForm(prev => ({ ...prev, attributes: updated }));
+  };
+
+  const addFeature = () => {
+    setVariantForm(prev => ({ ...prev, features: [...prev.features, ''] }));
+  };
+
+  const updateFeature = (index, val) => {
+    const updated = [...variantForm.features];
+    updated[index] = val;
+    setVariantForm(prev => ({ ...prev, features: updated }));
+  };
+
+  const removeFeature = (index) => {
+    const updated = [...variantForm.features];
+    updated.splice(index, 1);
+    setVariantForm(prev => ({ ...prev, features: updated }));
   };
 
   const addMediaSlot = () => {
@@ -291,6 +323,8 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
           price: parseFloat(v.price) || 0,
           compare_at_price: parseFloat(v.compare_at_price) || null,
           inventory_quantity: parseInt(v.inventory_quantity) || 0,
+          weight: parseFloat(v.weight) || 1.0,
+          features: v.features || [],
           attributes: (v.attributes || []).reduce((acc, curr) => {
             if (curr.key && curr.key.trim() !== '') {
               acc[curr.key.trim()] = curr.value;
@@ -498,11 +532,18 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
                             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: v.inventory_quantity > 0 ? '#10b981' : '#ef4444', margin: 0 }}>
                               Stock: {v.inventory_quantity}
                             </p>
-                            {v.attributes && v.attributes.length > 0 && (
-                              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-text-muted)', margin: '5px 0 0' }}>
-                                {v.attributes.map(a => `${a.key}: ${a.value}`).join(' | ')}
-                              </p>
-                            )}
+                            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '5px' }}>
+                              {v.attributes && v.attributes.length > 0 && (
+                                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
+                                  {v.attributes.map(a => `${a.key}: ${a.value}`).join(' | ')}
+                                </p>
+                              )}
+                              {v.features && v.features.length > 0 && (
+                                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-primary-dark)', margin: 0, fontWeight: 500 }}>
+                                  {v.features.length} Feature{v.features.length > 1 ? 's' : ''}
+                                </p>
+                              )}
+                            </div>
                           </div>
 
                           {/* Actions */}
@@ -553,13 +594,14 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
                   {/* Card 2: Pricing & Stock */}
                   <div style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', marginBottom: '20px' }}>
                     <div style={{ marginBottom: '15px' }}>
-                      <h5 style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-dark)', margin: '0 0 5px' }}>Pricing & Inventory</h5>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>Set the cost and track stock limits.</p>
+                      <h5 style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-dark)', margin: '0 0 5px' }}>Pricing, Inventory & Shipping</h5>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>Set the cost, track stock limits, and shipping weight.</p>
                     </div>
                     <div className="variant-grid">
                       <InputRow label="Price (₦)" value={variantForm.price} onChange={val => setVariantForm(prev => ({ ...prev, price: val }))} />
                       <InputRow label="Compare At Price (Optional)" value={variantForm.compare_at_price} onChange={val => setVariantForm(prev => ({ ...prev, compare_at_price: val }))} />
                       <InputRow label="Inventory Quantity" value={variantForm.inventory_quantity} onChange={val => setVariantForm(prev => ({ ...prev, inventory_quantity: val }))} />
+                      <InputRow label="Weight (kg)" value={variantForm.weight} onChange={val => setVariantForm(prev => ({ ...prev, weight: val }))} />
                     </div>
                   </div>
 
@@ -605,6 +647,50 @@ const ProductEditorModal = ({ show, onHide, initialProduct = null, onManageCateg
                             />
                             <button
                               onClick={() => removeAttribute(idx)}
+                              style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '10px' }}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 3.5: Features */}
+                  <div style={{ padding: '20px', backgroundColor: '#fff', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <div className='mb-lg-0 mb-3'>
+                        <h5 style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-text-dark)', margin: '0 0 5px' }}>Features (Optional)</h5>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>List specific highlights (e.g. Waterproof, 2 Year Warranty).</p>
+                      </div>
+                      <button
+                        onClick={addFeature}
+                        className='mb-lg-0 mb-2'
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <Plus size={14} /> Add Feature
+                      </button>
+                    </div>
+
+                    {variantForm.features.length === 0 ? (
+                      <div style={{ padding: '20px', textAlign: 'center', border: '1px dashed rgba(0,0,0,0.1)', borderRadius: '4px' }}>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>No features added.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {variantForm.features.map((feat, idx) => (
+                          <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <input
+                              type="text"
+                              placeholder="e.g. Scratch Resistant"
+                              value={feat}
+                              onChange={(e) => updateFeature(idx, e.target.value)}
+                              className="auth-input"
+                              style={{ flex: 1, padding: '10px', fontSize: '13px' }}
+                            />
+                            <button
+                              onClick={() => removeFeature(idx)}
                               style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '10px' }}
                             >
                               <X size={16} />

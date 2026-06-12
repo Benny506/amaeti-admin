@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^2.12.0",
     "@supabase/supabase-js": "^2.106.2",
     "bootstrap": "^5.3.8",
+    "dayjs": "^1.11.21",
     "formik": "^2.4.9",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
